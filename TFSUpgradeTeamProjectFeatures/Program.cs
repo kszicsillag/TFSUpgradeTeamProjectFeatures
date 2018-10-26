@@ -7,6 +7,7 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,10 +17,13 @@ namespace TFSUpgradeTeamProjectFeatures
 {
     class Program
     {
+        static bool useDebugOut=false;
+
         static void Main(string[] args)
         {
             string rootLogFolder = ConfigurationManager.AppSettings["RootLogFolder"].ToString();
-
+            if (ConfigurationManager.AppSettings["InteractiveLogOut"].ToString() == "Debug")
+                Console.SetOut(new TextWriterDebug());
             try
             {
                 Console.WriteLine("*** Scanning all Team Projects in all Team Project Collections ***");
@@ -67,7 +71,7 @@ namespace TFSUpgradeTeamProjectFeatures
             }
         }
 
-        private static string GetTfsInstallationDir(string tfsVersion = "15.0")
+        private static string GetTfsInstallationDir(string tfsVersion = "16.0")
         {
             string registryKeyString = string.Format(@"SOFTWARE\Microsoft\TeamFoundationServer\{0}", tfsVersion);
 
@@ -155,7 +159,7 @@ namespace TFSUpgradeTeamProjectFeatures
 
         private static void ProvisionProject(IVssRequestContext context, Microsoft.TeamFoundation.WorkItemTracking.Client.Project project, ProjectFeatureProvisioningService projectFeatureProvisioningService, IProjectFeatureProvisioningDetails projectFeatureProvisioningDetail)
         {
-            projectFeatureProvisioningService.ProvisionFeatures(context, project.Uri.ToString(), projectFeatureProvisioningDetail.ProcessTemplateDescriptorId);
-        }
+            projectFeatureProvisioningService.ProvisionFeatures(context, project.Uri.ToString(), projectFeatureProvisioningDetail.ProcessTemplateDescriptor.RowId);
+        }       
     }
 }
